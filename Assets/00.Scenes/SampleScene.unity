@@ -323,10 +323,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2304f11ad71afd045b6bddb30401e4c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  acceleration: 1
-  maxSpeed: 5
   arrivalPoint: {fileID: 7973478304213180604, guid: 87053ca136b0ee549933aeeca4ef3150,
     type: 3}
+  acceleration: 1
+  maxSpeed: 5
+  scaleSpeed: 0
 --- !u!1 &484020023
 GameObject:
   m_ObjectHideFlags: 0

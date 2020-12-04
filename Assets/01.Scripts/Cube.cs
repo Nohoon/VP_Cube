@@ -6,34 +6,30 @@ using System;
 
 public class Cube : MonoBehaviour
 {
-
-    TOUCH_STATE touchState;
-
-    public float acceleration;
-    public float maxSpeed;
     public GameObject arrivalPoint;
-    
 
-    private float moveSpeed;
-    private float xAngle;
-    private float yAngle;
-    private float xAngleTemp;
-    private float yAngleTemp;
-    private bool isMove = false;
+    TOUCH_STATE touchState; // 터치모드일때의 상태
 
     private Vector3 destination;
     private Vector3 firstPoint;
     private Vector3 secondPoint;
-    private Quaternion oldRotation;
+    
+    public float acceleration;
+    public float maxSpeed;
+    public float scaleSpeed; 
+    private float xAngle;
+    private float yAngle;
+    private float xAngleTemp;
+    private float yAngleTemp;    
+
+    private bool isMove = false;
+
 
 
     // Start is called before the first frame update
     void Start()
     {
-        //Instantiate(arrivalPoint);
-        //arrivalPoint.SetActive(false);
         touchState = TOUCH_STATE.TOUCH_MOVE;
-
     }
 
     // Update is called once per frame
@@ -52,17 +48,15 @@ public class Cube : MonoBehaviour
 
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit))
             {
-                if(raycastHit.collider.CompareTag("Player"))
+                if(raycastHit.collider.CompareTag("Player"))    //  큐브 클릭했을때
                 {
                     Debug.Log("맞았땅");
                     touchState = TOUCH_STATE.TOUCH_ZOOM;
                     Zoom();
                 }
                 else
-                {
-                   //touchState = TOUCH_STATE.TOUCH_MOVE;
                     SetDestination(new Vector3(raycastHit.point.x,0f, raycastHit.point.z));
-                }
+                
                 
                
             }
@@ -79,31 +73,77 @@ public class Cube : MonoBehaviour
                     CubeRotation();
                     break;
 
+                case 2:
+                    CubeScale();
+                    break;
+
                 default: break;
             }
         }
-            CubeRotation();
+            
     }
 
+    //  큐브 확대 모드일때 크기 조절
+    private void CubeScale()
+    {
+        Touch firstTouch = Input.GetTouch(0);   // 처음 누른 손가락
+        Touch secondTouch = Input.GetTouch(1);  // 두번째로 누른 손가락
+
+        // 각 손가락의 현재 프레임 이전 터치 위치
+        Vector2 firstPreviousPosition = firstTouch.position - firstTouch.deltaPosition;
+        Vector2 secondPreviousPosition = secondTouch.position - secondTouch.deltaPosition;
+
+        //  이전 프레임에서의 두손가락 거리 값
+        float previousPositionDistance = (firstPreviousPosition - secondPreviousPosition).magnitude;
+        //  현재 프레임에서의 두손가락 거리 값
+        float currentPositionDistance = (firstTouch.position - secondTouch.position).magnitude;
+
+        // 프레임 이전의 위치랑 현재 위치의 변화량 (크기조절값)
+        float scaleValue = (firstTouch.deltaPosition - secondTouch.deltaPosition).magnitude * scaleSpeed;
+
+        //  크기 증가
+        if (previousPositionDistance < currentPositionDistance)
+            transform.localScale += new Vector3(0.1f, 0.1f, 0.1f);
+
+        //  크기 감소
+        else if(previousPositionDistance > currentPositionDistance)
+            transform.localScale -= new Vector3(0.1f, 0.1f, 0.1f);
+
+        if (1f >= transform.localScale.x)
+            transform.localScale = Vector3.one;
+    }
+
+    //  큐브 확대 모드일때 회전
     private void CubeRotation()
     {
+        // 처음 터치했을때
         if (Input.GetTouch(0).phase == TouchPhase.Began)
         {
             firstPoint = Input.GetTouch(0).position;
             xAngleTemp = xAngle;
             yAngleTemp = yAngle;
-            transform.rotation = oldRotation;
+
 
         }
 
+        //  터치 중일때
         if (Input.GetTouch(0).phase == TouchPhase.Moved)
         {
             secondPoint = Input.GetTouch(0).position;
             xAngle = xAngleTemp + (secondPoint.x - firstPoint.x) * 180 / Screen.width;
             yAngle = yAngleTemp + (secondPoint.y - firstPoint.y) * 90 / Screen.height;
-            transform.rotation = Quaternion.Euler(yAngle, xAngle * -1, 0.0f);
+            transform.rotation = Quaternion.Euler(yAngle, -xAngle, 0.0f);
+
+
+        }
+
+        //  터치 끝날때
+        if(Input.GetTouch(0).phase == TouchPhase.Ended)
+        {
             
         }
+
+        
     }
 
     private void SetDestination(Vector3 dest)
@@ -112,6 +152,7 @@ public class Cube : MonoBehaviour
         isMove = true;
     }
 
+    //  큐브 이동
     private void Move()
     {
         CameraManager.Instance.SetCamera(CAMERA_STATE.MAIN);
@@ -124,13 +165,13 @@ public class Cube : MonoBehaviour
                 return;
             }
 
-            //transform.rotation = Quaternion.LookRotation(destination);
             Vector3 dir = destination - transform.position;
             transform.forward = dir.normalized;
             transform.position += dir.normalized * Time.deltaTime * 5f;
         }
     }
 
+    //  큐브 클릭시 카메라 변경 및 큐브 초기 위치 회전값 변경
     private void Zoom()
     {
         CameraManager.Instance.SetCamera(CAMERA_STATE.ZOOM);
