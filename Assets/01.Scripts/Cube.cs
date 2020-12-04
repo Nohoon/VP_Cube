@@ -9,12 +9,14 @@ public class Cube : MonoBehaviour
     public GameObject arrivalPoint;
 
     [HideInInspector]
+    public CUBE_STATE cubeState;   // 조이스틱모드,터치모드 상태
+    [HideInInspector]
     public TOUCH_STATE touchState; // 터치모드일때의 상태
 
     private Vector3 destination;
     private Vector3 firstPoint;
     private Vector3 secondPoint;
-    private Vector3 originRotation;
+
 
     public float acceleration; 
     public float maxSpeed;
@@ -23,25 +25,37 @@ public class Cube : MonoBehaviour
     private float xAngle;
     private float yAngle;
     private float xAngleTemp;
-    private float yAngleTemp;    
-    private float rotationX;    
-    private float rotationY;    
+    private float yAngleTemp;
 
     private bool isMove = false;
-    private bool isFirstRotate = false;
+    
 
 
 
     // Start is called before the first frame update
     void Start()
     {
+        cubeState = CUBE_STATE.TOUCH;
         touchState = TOUCH_STATE.TOUCH_MOVE;
     }
 
     // Update is called once per frame
     void Update()
     {
-        Touch();
+        UIManager.Instance.SetCubeState(cubeState);
+
+        switch (cubeState)
+        {
+            case CUBE_STATE.TOUCH:
+                Touch();
+                break;
+
+            case CUBE_STATE.JOYSTICK:
+                Joystick();
+                break;
+            default: break;
+        }
+        
     }
 
     //  터치방식
@@ -125,7 +139,6 @@ public class Cube : MonoBehaviour
         // 처음 터치했을때
         if (Input.GetTouch(0).phase == TouchPhase.Began)
         {
-            isFirstRotate = true;
             firstPoint = Input.GetTouch(0).position;
             xAngleTemp = xAngle;
             yAngleTemp = yAngle;
@@ -192,7 +205,7 @@ public class Cube : MonoBehaviour
 
     private void Joystick()
     {
-
+        
     }
 
     private void OnTriggerEnter(Collider other)
