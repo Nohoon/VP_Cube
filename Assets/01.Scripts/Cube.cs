@@ -8,21 +8,27 @@ public class Cube : MonoBehaviour
 {
     public GameObject arrivalPoint;
 
-    TOUCH_STATE touchState; // 터치모드일때의 상태
+    [HideInInspector]
+    public TOUCH_STATE touchState; // 터치모드일때의 상태
 
     private Vector3 destination;
     private Vector3 firstPoint;
     private Vector3 secondPoint;
-    
-    public float acceleration;
+    private Vector3 originRotation;
+
+    public float acceleration; 
     public float maxSpeed;
     public float scaleSpeed; 
+    public float rotationSpeed; 
     private float xAngle;
     private float yAngle;
     private float xAngleTemp;
     private float yAngleTemp;    
+    private float rotationX;    
+    private float rotationY;    
 
     private bool isMove = false;
+    private bool isFirstRotate = false;
 
 
 
@@ -46,7 +52,7 @@ public class Cube : MonoBehaviour
         {
             RaycastHit raycastHit;
 
-            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit))
+            if (TOUCH_STATE.TOUCH_ZOOM != touchState && Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out raycastHit) )
             {
                 if(raycastHit.collider.CompareTag("Player"))    //  큐브 클릭했을때
                 {
@@ -67,7 +73,7 @@ public class Cube : MonoBehaviour
 
         else if (TOUCH_STATE.TOUCH_ZOOM == touchState && Input.touchCount > 0)
         {
-            switch(Input.touchCount)
+            switch (Input.touchCount)
             {
                 case 1:
                     CubeRotation();
@@ -119,6 +125,7 @@ public class Cube : MonoBehaviour
         // 처음 터치했을때
         if (Input.GetTouch(0).phase == TouchPhase.Began)
         {
+            isFirstRotate = true;
             firstPoint = Input.GetTouch(0).position;
             xAngleTemp = xAngle;
             yAngleTemp = yAngle;
@@ -130,20 +137,18 @@ public class Cube : MonoBehaviour
         if (Input.GetTouch(0).phase == TouchPhase.Moved)
         {
             secondPoint = Input.GetTouch(0).position;
-            xAngle = xAngleTemp + (secondPoint.x - firstPoint.x) * 180 / Screen.width;
-            yAngle = yAngleTemp + (secondPoint.y - firstPoint.y) * 90 / Screen.height;
-            transform.rotation = Quaternion.Euler(yAngle, -xAngle, 0.0f);
-
-
+            //xAngle = xAngleTemp + (secondPoint.x - firstPoint.x) * 180 / Screen.width;
+            //yAngle = yAngleTemp + (secondPoint.y - firstPoint.y) * 90 / Screen.height;
+            xAngle = xAngleTemp + (secondPoint.x - firstPoint.x);
+            yAngle = yAngleTemp + (secondPoint.y - firstPoint.y);
+            transform.rotation = Quaternion.Euler(-yAngle, -xAngle, 0.0f);
         }
 
         //  터치 끝날때
-        if(Input.GetTouch(0).phase == TouchPhase.Ended)
+        if (Input.GetTouch(0).phase == TouchPhase.Ended)
         {
             
-        }
-
-        
+        }        
     }
 
     private void SetDestination(Vector3 dest)
